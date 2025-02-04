@@ -12,7 +12,7 @@ public class MariaDBProperties {
 
     public static final String DATABASE_PASSWORD = "Ferrari458537539";
 
-    public static final String DATABASE_URL_COMPLETE = "jdbc:mariadb://locahost:3306?user="+ DATABASE_USER + "&password=" + DATABASE_PASSWORD;
+    public static final String DATABASE_URL_COMPLETE = "jdbc:mariadb://localhost:3306?user="+ DATABASE_USER + "&password=" + DATABASE_PASSWORD;
 
     public static boolean isDriverRegistered(PrintStream printStream) {
         try {
