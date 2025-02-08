@@ -9,8 +9,7 @@ public class Author {
     private String firstName;
     private String lastName;
 
-    public Author(LinkedList<Book> bookList, int authorID, String firstName, String lastName) {
-        this.bookList = bookList;
+    public Author(int authorID, String firstName, String lastName) {
         this.authorID = authorID;
         this.firstName = firstName;
         this.lastName = lastName;

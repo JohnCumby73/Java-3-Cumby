@@ -4,7 +4,7 @@ import java.sql.*;
 public class MariaDBTest {
     // JDBC driver name and database URL
     static final String JDBC_DRIVER = "org.mariadb.jdbc.Driver";
-    static final String DB_URL = "jdbc:mariadb://localhost:3306/javatest";
+    static final String DB_URL = "jdbc:mariadb://localhost:3306/books";
 
     // Database credentials
     static final String USER = "root";
