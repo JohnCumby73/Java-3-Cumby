@@ -17,6 +17,13 @@ public class BookDatabaseManager {
     public static final String BUILDLISTOFAUTHORS = "SELECT authorID FROM authorisbn WHERE isbn = ";
     public static final String BUILDLISTOFBOOKS = "SELECT isbn FROM authorisbn WHERE authorID =  ";
 
+    Library library;
+
+    public BookDatabaseManager() {
+        library = buildUpLibraryWithoutRelationships();
+        this.buildListOfAuthorsForEachBook();
+        this.buildListOfBooksForEachAuthor();
+    }
 
     /**
      * This method queries the database and returns a Library object.
@@ -71,8 +78,6 @@ public class BookDatabaseManager {
 
         return new Library(books, authors);
     }
-
-    Library library = buildUpLibraryWithoutRelationships();
 
     public void buildListOfAuthorsForEachBook() {
         // Loop through every book in the library so you can access each isbn.
@@ -168,7 +173,44 @@ public class BookDatabaseManager {
         System.out.println();
     }
 
+    public void updateBookTitleByIsbn(String isbn, String newTitle) {
+        Book book = findBookByIsbn(isbn);
+        book.setTitle(newTitle);
+    }
 
-    // Method to print all books
+    public void updateBookEditionNumberByIsbn(String isbn, int newEditionNumber) {
+        Book book = findBookByIsbn(isbn);
+        book.setEditionNumber(newEditionNumber);
+    }
+
+    public void updateBookCopyrightByIsbn(String isbn, String newCopyright) {
+        Book book = findBookByIsbn(isbn);
+        book.setCopyright(newCopyright);
+    }
+
+    public void sendBookTitleUpdateToDatabase(String isbn, String newTitle) {
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement("UPDATE titles SET title =? WHERE isbn =?")) {
+
+            pstmt.setString(1, newTitle);
+            pstmt.setString(2, isbn);
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("Book title updated successfully.");
+                Book book = findBookByIsbn(isbn);
+                if (book!= null) {
+                    book.setTitle(newTitle);
+                }
+            } else {
+                System.out.println("No book found with that ISBN."); // Handle the case where no book is found
+            }
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }
