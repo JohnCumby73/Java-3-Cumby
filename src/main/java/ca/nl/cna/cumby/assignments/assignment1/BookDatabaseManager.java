@@ -9,7 +9,7 @@ public class BookDatabaseManager {
 
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_GREEN = "\u001B[32m";
-    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_RED = "\u001B[31m";
 
     public static final String DB_NAME = "books";
     public static final String GETBOOKS_QUERY = "SELECT * FROM titles";
@@ -197,19 +197,141 @@ public class BookDatabaseManager {
             int rowsAffected = pstmt.executeUpdate();
 
             if (rowsAffected > 0) {
-                System.out.println("Book title updated successfully.");
+                System.out.println(ANSI_GREEN + "Book title updated successfully !!!" + ANSI_RESET);
+
+                // Keep local version updated!
                 Book book = findBookByIsbn(isbn);
                 if (book!= null) {
                     book.setTitle(newTitle);
                 }
             } else {
-                System.out.println("No book found with that ISBN."); // Handle the case where no book is found
+                System.out.println(ANSI_RED + "Operation Failed !!!" + ANSI_RESET);
             }
 
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendBookEditionNumberUpdateToDatabase(String isbn, int newEditionNumber) {
+        String newEditionNumberString = String.valueOf(newEditionNumber);
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
+            PreparedStatement pstmt = conn.prepareStatement("UPDATE titles SET editionNumber =? WHERE isbn =?")) {
+
+            pstmt.setString(1, newEditionNumberString);
+            pstmt.setString(2, isbn);
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println(ANSI_GREEN + "Book edition number updated successfully !!!" + ANSI_RESET);
+
+                // Keep local version updated!
+                Book book = findBookByIsbn(isbn);
+                if (book != null) {
+                    book.setEditionNumber(newEditionNumber);
+                }
+            }   else {
+                System.out.println(ANSI_RED + "Operation Failed !!!" + ANSI_RESET);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendBookCopyrightUpdateToDatabase(String isbn, String newCopyrightYear) {
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
+            PreparedStatement pstmt = conn.prepareStatement("UPDATE titles SET copyright =? WHERE isbn =?")) {
+
+            pstmt.setString(1, newCopyrightYear);
+            pstmt.setString(2, isbn);
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println(ANSI_GREEN + "Book copyright updated successfully !!!" + ANSI_RESET);
+
+                // Keep local version updated!
+                Book book = findBookByIsbn(isbn);
+                if (book != null) {
+                    book.setCopyright(newCopyrightYear);
+                }
+            }   else {
+                System.out.println(ANSI_RED + "Operation Failed !!!" + ANSI_RESET);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendAuthorFirstNameUpdateToDatabase(int authorId, String newFirstName) {
+        String authorIdString = String.valueOf(authorId);
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
+            PreparedStatement pstmt = conn.prepareStatement("UPDATE authors SET firstName =? WHERE authorID =?")) {
+
+            pstmt.setString(1, newFirstName);
+            pstmt.setString(2, authorIdString);
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println(ANSI_GREEN + "Author first name updated successfully !!!" + ANSI_RESET);
+
+                // Keep local version updated!
+                Author author = findAuthorById(authorId);
+                if (author != null) {
+                    author.setFirstName(newFirstName);
+                }
+            }   else {
+                System.out.println(ANSI_RED + "Operation Failed !!!" + ANSI_RESET);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendAuthorLastNameUpdateToDatabase(int authorId, String newLastName) {
+        String authorIdString = String.valueOf(authorId);
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement("UPDATE authors SET lastName =? WHERE authorID =?")) {
+
+            pstmt.setString(1, newLastName);
+            pstmt.setString(2, authorIdString);
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println(ANSI_GREEN + "Author last name updated successfully !!!" + ANSI_RESET);
+
+                // Keep local version updated!
+                Author author = findAuthorById(authorId);
+                if (author != null) {
+                    author.setLastName(newLastName);
+                }
+            }   else {
+                System.out.println(ANSI_RED + "Operation Failed !!!" + ANSI_RESET);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    public boolean isbnExists(String isbn) {
+        for (Book book : library.getBooks()) {
+            if (book.getIsbn().equals(isbn)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean authorExists(int authorId) {
+        for (Author author : library.getAuthors()) {
+            if (author.getAuthorID() == authorId) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
