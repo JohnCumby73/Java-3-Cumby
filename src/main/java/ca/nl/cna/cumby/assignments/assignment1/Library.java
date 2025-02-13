@@ -27,4 +27,11 @@ public class Library {
     public void setBooks(LinkedList<Book> books) {
         this.books = books;
     }
+
+    public void addBook(Book book) {
+        books.add(book);
+    }
+    public void addAuthor(Author author) {
+        authors.add(author);
+    }
 }

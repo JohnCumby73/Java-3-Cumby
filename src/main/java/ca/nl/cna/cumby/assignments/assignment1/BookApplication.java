@@ -1,5 +1,6 @@
 package ca.nl.cna.cumby.assignments.assignment1;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class BookApplication {
@@ -24,7 +25,6 @@ public class BookApplication {
                     case 1:
                         // add logic
                         dbm.printAllBooks();
-                        dbm.buildListOfAuthorsForEachBook();
                         break;
                     case 2:
                         dbm.printAllAuthors();
@@ -85,11 +85,92 @@ public class BookApplication {
                         }
                         break;
                     case 5:
-                        System.out.println("5");
-                        // add logic
+                        System.out.println("Enter the isbn of the new book:");
+                        String newIsbn = "";
+                        int attempts = 0;
+                        do {
+                            attempts++;
+                            if (attempts > 1) {
+                                System.out.println(ANSI_RED + "Invalid !!! Please try again." + ANSI_RESET);
+                            }
+                            newIsbn = scanner.nextLine();
+                        } while (dbm.isbnExists(newIsbn) || newIsbn.isEmpty() || newIsbn.length() > 20 );
+
+                        System.out.println("Enter the title of the new book: ");
+                        String newTitle = "";
+                        int attempts2 = 0;
+                        do {
+                            attempts2++;
+                            if (attempts2 > 1) {
+                                System.out.println(ANSI_RED + "Invalid !!! Please try again." + ANSI_RESET);
+                            }
+                            newTitle = scanner.nextLine();
+                        } while (newTitle.isEmpty() || newTitle.length() > 100);
+
+                        System.out.println("Enter the edition number of the new book: ");
+                        int newEditionNumber = 0;
+                        int attempts3 = 0;
+                        do {
+                            attempts3++;
+                            if (attempts3 > 1) {
+                                System.out.println(ANSI_RED + "Invalid !!! Please try again." + ANSI_RESET);
+                            }
+                            newEditionNumber = scanner.nextInt();
+                            scanner.nextLine();
+                        } while (newEditionNumber < 1);
+
+                        System.out.println("Enter the copyright of the new book: ");
+                        String newCopyright = "";
+                        int attempts4 = 0;
+                        do {
+                            attempts4++;
+                            if (attempts4 > 1) {
+                                System.out.println(ANSI_RED + "Invalid !!! Please try again." + ANSI_RESET);
+                            }
+                            newCopyright = scanner.nextLine();
+                        } while (newCopyright.isEmpty() || newCopyright.length() > 4);
+
+                        ArrayList<Integer> associatedAuthorIds = new ArrayList<Integer>();
+                        int associatedAuthorId = 0;
+                        System.out.println("Enter associated authors' IDs. Enter 77 to escape.");
+                        do {
+                            associatedAuthorId = scanner.nextInt();
+                            scanner.nextLine();
+                            if (dbm.authorExists(associatedAuthorId)) {
+                                associatedAuthorIds.add(associatedAuthorId);
+                            } else {
+                                if (associatedAuthorId != 77) {
+                                    System.out.println(ANSI_RED + "Author not found !!!" + ANSI_RESET);
+                                }
+                            }
+                        } while (associatedAuthorId != 77);
+                        dbm.sendNewBookToDatabase(newIsbn, newTitle, newEditionNumber, newCopyright, associatedAuthorIds);
+
                         break;
                     case 6:
-                        System.out.println("6");
+                        System.out.println("Enter the first name of the new author: ");
+                        String newFirstName = "";
+                        int attempts5 = 0;
+                        do {
+                            attempts5++;
+                            if (attempts5 > 1) {
+                                System.out.println(ANSI_RED + "Invalid !!! Please try again." + ANSI_RESET);
+                            }
+                            newFirstName = scanner.nextLine();
+                        } while (newFirstName.isEmpty() || newFirstName.length() > 20);
+
+                        System.out.println("Enter the last name of the new author: ");
+                        String newLastName = "";
+                        int attempts6 = 0;
+                        do {
+                            attempts6++;
+                            if (attempts6 > 1) {
+                                System.out.println(ANSI_RED + "Invalid !!! " + ANSI_RESET);
+                            }
+                            newLastName = scanner.nextLine();
+                        } while (newLastName.isEmpty() || newLastName.length() > 30);
+
+                        dbm.sendNewAuthorToDatabase(newFirstName, newLastName);
                         break;
                     case 7:
                         System.out.println("7");
@@ -100,7 +181,7 @@ public class BookApplication {
             } else {
                 System.out.println("Please enter an integer");
             }
-        } while (choice != 5);
+        } while (choice != 7);
         scanner.close();
     }
 

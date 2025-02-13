@@ -1,5 +1,6 @@
 package ca.nl.cna.cumby.assignments.assignment1;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.sql.*;
 
@@ -173,21 +174,6 @@ public class BookDatabaseManager {
         System.out.println();
     }
 
-    public void updateBookTitleByIsbn(String isbn, String newTitle) {
-        Book book = findBookByIsbn(isbn);
-        book.setTitle(newTitle);
-    }
-
-    public void updateBookEditionNumberByIsbn(String isbn, int newEditionNumber) {
-        Book book = findBookByIsbn(isbn);
-        book.setEditionNumber(newEditionNumber);
-    }
-
-    public void updateBookCopyrightByIsbn(String isbn, String newCopyright) {
-        Book book = findBookByIsbn(isbn);
-        book.setCopyright(newCopyright);
-    }
-
     public void sendBookTitleUpdateToDatabase(String isbn, String newTitle) {
         try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
              PreparedStatement pstmt = conn.prepareStatement("UPDATE titles SET title =? WHERE isbn =?")) {
@@ -312,6 +298,124 @@ public class BookDatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendNewBookToDatabase(String newIsbn, String newTitle, int newEditionNumber, String newCopyrightYear, ArrayList<Integer> listOfAssociatedAuthorIDs) {
+        String titlesTableSql = "INSERT INTO titles (isbn, title, editionNumber, copyright) VALUES (?,?,?,?)";
+        String authorIsbnTableSql = "INSERT INTO authorisbn (isbn, authorID) VALUES (?,?)";
+
+
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
+            PreparedStatement titlesStmt = conn.prepareStatement(titlesTableSql);
+            PreparedStatement authorIsbnStmt = conn.prepareStatement(authorIsbnTableSql)) {
+
+             conn.setAutoCommit(false); // Start transaction
+
+            // Insert into titles table
+            titlesStmt.setString(1, newIsbn);
+            titlesStmt.setString(2, newTitle);
+            titlesStmt.setInt(3, newEditionNumber);
+            titlesStmt.setString(4, newCopyrightYear);
+            int rowsAffected = titlesStmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println(ANSI_GREEN + "Book added successfully !!!" + ANSI_RESET);
+
+                // Insert into authorisbn table (potentially multiple times)
+                for (int authorID : listOfAssociatedAuthorIDs) {
+                    authorIsbnStmt.setString(1, newIsbn);
+                    authorIsbnStmt.setInt(2, authorID);
+                    authorIsbnStmt.addBatch(); // Add to batch for efficient execution of multiple queries
+                }
+
+                int[] authorIsbnRowsAffected = authorIsbnStmt.executeBatch(); // Execute Batch
+
+                // Check if all author inserts were successful (rollback the transaction if any of them fail)
+                boolean allAuthorInsertsSuccessfull = true;
+                for (int affected : authorIsbnRowsAffected) {
+                    if (affected <= 0) {
+                        allAuthorInsertsSuccessfull = false;
+                        break;
+                    }
+                }
+
+                if (!allAuthorInsertsSuccessfull) {
+                    conn.rollback(); // Cancel transaction
+                    System.out.println(ANSI_RED + "Failed to add authors. Rolling back." + ANSI_RESET);
+                    return;
+                }
+
+                System.out.println(ANSI_GREEN + "Author's added to book successfully !!!" + ANSI_RESET);
+
+                conn.commit(); // Commit transaction.
+
+                // Keep local objects updated only if everything worked!
+                Book book = new Book(newIsbn, newTitle, newEditionNumber, newCopyrightYear);
+
+                // Add book to the library
+                library.addBook(book);
+
+                // Make the author list for it
+                LinkedList<Author> authors = buildListOfAuthorsByIds(listOfAssociatedAuthorIDs);
+                book.setAuthorList(authors);
+
+                // Add the book to the authors list
+                for (Author author : authors) {
+                    author.addBookToList(book);
+                }
+            } else {
+                conn.rollback(); // Rollback if operation fails for some other reason.
+                System.out.println(ANSI_RED + "Operation Failed !!!" + ANSI_RESET);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendNewAuthorToDatabase(String newFirstName, String newLastName) {
+        String sql = "INSERT INTO authors (firstName, lastName) VALUES (?,?)";
+
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
+            PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            pstmt.setString(1, newFirstName);
+            pstmt.setString(2, newLastName);
+
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println(ANSI_GREEN + "Author added successfully !!!" + ANSI_RESET);
+
+                // Get the auto-generated authorID
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int newAuthorID = generatedKeys.getInt(1); // Get the first generated key
+
+                        Author author = new Author(newAuthorID, newFirstName, newLastName);
+                        library.addAuthor(author);
+                        author.setBookList(new LinkedList<>());
+
+                    } else {
+                        System.out.println(ANSI_RED + "Could not retrieve Author ID, internal author list not accurate !!!" + ANSI_RESET);
+                    }
+                }
+            } else {
+                System.out.println(ANSI_RED + "Could not retrieve author ID" + ANSI_RESET);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public LinkedList<Author> buildListOfAuthorsByIds(ArrayList<Integer> listOfAuthorIDs) {
+        LinkedList<Author> authors = new LinkedList<>();
+        for (int authorID : listOfAuthorIDs) {
+            Author author = findAuthorById(authorID);
+            if (author != null) {
+                authors.add(author);
+            }
+        }
+        return authors;
     }
 
 

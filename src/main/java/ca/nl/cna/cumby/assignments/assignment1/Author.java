@@ -46,4 +46,8 @@ public class Author {
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
+
+    public void addBookToList(Book book) {
+        bookList.add(book);
+    }
 }
