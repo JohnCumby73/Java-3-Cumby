@@ -185,6 +185,9 @@ public class BookApplication {
         scanner.close();
     }
 
+    /**
+     * Print the user's options.
+     */
     public static void printMenu() {
         System.out.println("\n1: Print all the books from the database (Showing the authors)");
         System.out.println("2: Print all the authors from the database (Showing the books)");

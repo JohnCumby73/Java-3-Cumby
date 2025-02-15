@@ -27,8 +27,14 @@ public class BookDatabaseManager {
     }
 
     /**
-     * This method queries the database and returns a Library object.
-     * @return Library
+     * Builds a library object from the database, but without establishing
+     * the relationships between books and authors. This method retrieves
+     * all books and all authors separately, but does not link them.
+     *
+     * @return A {@link Library} object containing lists of {@link Book} and
+     * {@link Author} objects.
+     *
+     * @throws SQLException If a database occurs during the retrieval of books or authors.
      */
     Library buildUpLibraryWithoutRelationships() {
         LinkedList<Book> books = new LinkedList<>();
@@ -80,6 +86,15 @@ public class BookDatabaseManager {
         return new Library(books, authors);
     }
 
+
+    /**
+     * Builds the list of authors for each book in the library. This method
+     * iterates through every book in the library, queries the database for
+     * the authors associated with each book's ISBN, and then sets the author list
+     * for each book.
+     *
+     * @throws SQLException If a database error occurs during the retrieval of authors for a book.
+     */
     public void buildListOfAuthorsForEachBook() {
         // Loop through every book in the library so you can access each isbn.
         for (Book book : library.getBooks()) {
@@ -102,6 +117,14 @@ public class BookDatabaseManager {
         }
     }
 
+    /**
+     * Builds the list of books for author in the library. This method
+     * iterates through every author in the library, queries the database
+     * for the ISBN's associated with each author ID, and then sets the book list
+     * for every author.
+     *
+     * @throws SQLException If a database error occurs during the retrieval of authors for a book.
+     */
     public void buildListOfBooksForEachAuthor() {
         // Loop through every author in the library so you can access each authorID.
         for (Author author : library.getAuthors()) {
@@ -125,6 +148,13 @@ public class BookDatabaseManager {
 
     }
 
+    /**
+     * Finds an author in the library by their ID.
+     * @param id The ID of the author to search for.
+     * @return The {@link Author} object if found, or {@code null} if no author
+     * with the given ID exists in the library.
+     */
+
     public Author findAuthorById(int id) {
         for (Author author : library.getAuthors()) {
             if (author.getAuthorID() == id) {
@@ -134,6 +164,12 @@ public class BookDatabaseManager {
         return null;
     }
 
+    /**
+     * Finds a book in the library by its ISBN.
+     * @param isbn The isbn of the book to search for.
+     * @return The {@link Book} object if found, or {@code null} if no book
+     * with the given ID exists in the library.
+     */
     public Book findBookByIsbn(String isbn) {
         for (Book book : library.getBooks()) {
             if (book.getIsbn().equals(isbn)) {
@@ -144,6 +180,9 @@ public class BookDatabaseManager {
     }
 
 
+    /**
+     * Prints the attributes of every book in the library.
+     */
     public void printAllBooks() {
         System.out.println();
         for (Book book : library.getBooks()) {
@@ -156,11 +195,12 @@ public class BookDatabaseManager {
             }
             System.out.println();
         }
-
-
         System.out.println();
     }
 
+    /**
+     * Prints the attributes of every author in the library.
+     */
     public void printAllAuthors() {
         System.out.println();
         for (Author author : library.getAuthors()) {
@@ -174,6 +214,11 @@ public class BookDatabaseManager {
         System.out.println();
     }
 
+    /**
+     * Updates a book in the database with a new title. This method also updates the local library.
+     * @param isbn The isbn of the book being updated.
+     * @param newTitle The new title being given to the book.
+     */
     public void sendBookTitleUpdateToDatabase(String isbn, String newTitle) {
         try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
              PreparedStatement pstmt = conn.prepareStatement("UPDATE titles SET title =? WHERE isbn =?")) {
@@ -200,6 +245,11 @@ public class BookDatabaseManager {
         }
     }
 
+    /**
+     * Updates a book in the database with a new edition number. This method also updates the local library.
+     * @param isbn The isbn of the book being updated.
+     * @param newEditionNumber The new edition number being given to the book.
+     */
     public void sendBookEditionNumberUpdateToDatabase(String isbn, int newEditionNumber) {
         String newEditionNumberString = String.valueOf(newEditionNumber);
         try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
@@ -226,6 +276,11 @@ public class BookDatabaseManager {
         }
     }
 
+    /**
+     * Updates a book in the database with a new edition number. This method also updates the local library.
+     * @param isbn The isbn of the book being updated.
+     * @param newCopyrightYear The new copyright year being given to the book.
+     */
     public void sendBookCopyrightUpdateToDatabase(String isbn, String newCopyrightYear) {
         try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
             PreparedStatement pstmt = conn.prepareStatement("UPDATE titles SET copyright =? WHERE isbn =?")) {
@@ -250,6 +305,11 @@ public class BookDatabaseManager {
         }
     }
 
+    /**
+     * Updates an author in the database with a new first name. This method also updates the local library.
+     * @param authorId The authorID of the author being updated.
+     * @param newFirstName The new first name being given to the author.
+     */
     public void sendAuthorFirstNameUpdateToDatabase(int authorId, String newFirstName) {
         String authorIdString = String.valueOf(authorId);
         try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
@@ -275,6 +335,11 @@ public class BookDatabaseManager {
         }
     }
 
+    /**
+     * Updates an author in the database with a new last name. This method also updates the local library.
+     * @param authorId The authorID of the author being updated.
+     * @param newLastName The new last name being given to the author.
+     */
     public void sendAuthorLastNameUpdateToDatabase(int authorId, String newLastName) {
         String authorIdString = String.valueOf(authorId);
         try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
@@ -300,6 +365,15 @@ public class BookDatabaseManager {
         }
     }
 
+    /**
+     * Inserts a new book into the database, and updates the ( authors - books) bridge table. This method also updates the local library.
+     * This is done in a transaction to ensure data integrity.
+     * @param newIsbn New book isbn.
+     * @param newTitle New book title.
+     * @param newEditionNumber New book edition number.
+     * @param newCopyrightYear New book copyright year.
+     * @param listOfAssociatedAuthorIDs New book list of associated author IDs.
+     */
     public void sendNewBookToDatabase(String newIsbn, String newTitle, int newEditionNumber, String newCopyrightYear, ArrayList<Integer> listOfAssociatedAuthorIDs) {
         String titlesTableSql = "INSERT INTO titles (isbn, title, editionNumber, copyright) VALUES (?,?,?,?)";
         String authorIsbnTableSql = "INSERT INTO authorisbn (isbn, authorID) VALUES (?,?)";
@@ -372,6 +446,11 @@ public class BookDatabaseManager {
         }
     }
 
+    /**
+     * Inserts a new author into the database. This method also updates the local library.
+     * @param newFirstName New author first name.
+     * @param newLastName New author last name.
+     */
     public void sendNewAuthorToDatabase(String newFirstName, String newLastName) {
         String sql = "INSERT INTO authors (firstName, lastName) VALUES (?,?)";
 
@@ -407,19 +486,32 @@ public class BookDatabaseManager {
         }
     }
 
+    /**
+     * Builds a {@code LinkedList} of {@link Author} from given author IDs.
+     * @param listOfAuthorIDs The list of author IDs.
+     * @return A {@code LinkedList} object if successful, or {@code null} if no authorIDs were given.
+     */
     public LinkedList<Author> buildListOfAuthorsByIds(ArrayList<Integer> listOfAuthorIDs) {
         LinkedList<Author> authors = new LinkedList<>();
-        for (int authorID : listOfAuthorIDs) {
-            Author author = findAuthorById(authorID);
-            if (author != null) {
-                authors.add(author);
+
+        if (listOfAuthorIDs != null) {
+            for (int authorID : listOfAuthorIDs) {
+                Author author = findAuthorById(authorID);
+                if (author != null) {
+                    authors.add(author);
+                }
             }
+            return authors;
+        } else {
+            return null;
         }
-        return authors;
     }
 
-
-
+    /**
+     * Checks if an isbn exists in the local library.
+     * @param isbn The isbn to look for.
+     * @return {@code true} if a book with the given ISBN exists in the library, {@code false} otherwise.
+     */
     public boolean isbnExists(String isbn) {
         for (Book book : library.getBooks()) {
             if (book.getIsbn().equals(isbn)) {
@@ -429,6 +521,11 @@ public class BookDatabaseManager {
         return false;
     }
 
+    /**
+     * Checks if an author exists in the local library.
+     * @param authorId The authorID of the author to look for.
+     * @return {@code true} if an author with the given authorID exists in the library, {@code false} otherwise.
+     */
     public boolean authorExists(int authorId) {
         for (Author author : library.getAuthors()) {
             if (author.getAuthorID() == authorId) {
@@ -437,6 +534,4 @@ public class BookDatabaseManager {
         }
         return false;
     }
-
-
 }

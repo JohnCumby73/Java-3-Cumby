@@ -3,6 +3,9 @@ package ca.nl.cna.cumby.assignments.assignment1;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+/**
+ * Represents a bok with its ISBN, title, edition number, copyright, and a list of authors.
+ */
 public class Book {
     private LinkedList<Author> authorList;
     private String isbn;
@@ -10,6 +13,14 @@ public class Book {
     private int editionNumber;
     private String copyright;
 
+    /**
+     * Constructs a new Book object.
+     *
+     * @param isbn          The book's ISBN.
+     * @param title         The book's title.
+     * @param editionNumber The book's edition number.
+     * @param copyright     The book's copyright information.
+     */
     public Book(String isbn, String title, int editionNumber, String copyright) {
         this.isbn = isbn;
         this.title = title;
