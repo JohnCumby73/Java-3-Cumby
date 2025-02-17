@@ -25,34 +25,66 @@ public class Author {
         this.lastName = lastName;
     }
 
+    /**
+     * Gets the list of books written by the author.
+     * @return The {@link LinkedList} of {@link Book} objects.
+     */
     public LinkedList<Book> getBookList() {
         return bookList;
     }
 
+    /**
+     * Sets the list of books written by the author.
+     * @param bookList The new {@link LinkedList} of {@link Book} objects.
+     */
     public void setBookList(LinkedList<Book> bookList) {
         this.bookList = bookList;
     }
 
+    /**
+     * Gets the ID of the author.
+     * @return The author's ID.
+     */
     public int getAuthorID() {
         return authorID;
     }
 
+    /**
+     * Sets the ID of the author.
+     * @param authorID The new author ID.
+     */
     public void setAuthorID(int authorID) {
         this.authorID = authorID;
     }
 
+    /**
+     * Gets the first name of the author.
+     * @return The author's first name.
+     */
     public String getFirstName() {
         return firstName;
     }
 
+    /**
+     * Sets the first name of the author.
+     * @param firstName The author's new first name.
+     */
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
 
+    /**
+     * Gets the last name of the author.
+     * @return The author's last name.
+     */
     public String getLastName() {
         return lastName;
     }
 
+    /**
+     * Sets the last name of the author.
+     * @param lastName The author's new last name.
+     */
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
